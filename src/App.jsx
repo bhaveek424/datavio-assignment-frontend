@@ -46,13 +46,13 @@ const App = () => {
     const fetchData = async () => {
       try {
         const response1 = await axios.get(
-          'http://localhost:3000/data/category1',
+          'https://i8tsc6o7w5.api.quickmocker.com/data/category1',
         );
         const response2 = await axios.get(
-          'http://localhost:3000/data/category2',
+          'https://i8tsc6o7w5.api.quickmocker.com/data/category2',
         );
         const response3 = await axios.get(
-          'http://localhost:3000/data/category3',
+          'https://i8tsc6o7w5.api.quickmocker.com/data/category3',
         );
 
         setData({
@@ -297,7 +297,7 @@ const App = () => {
         {loading && <p>Loading data...</p>}
         {!loading && !data && <p>No data available.</p>}
         {bubbleData ? (
-          <div style={{ width: '40vw', flex: 1 }}>
+          <div style={{ width: '40vw', flex: 1, paddingRight: '20px' }}>
             <Bubble
               options={{
                 scales: {
