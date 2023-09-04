@@ -1,51 +1,49 @@
-export const calculateAverage = (values) => {
-  const sum = values.reduce((acc, val) => acc + val[1], 0);
-  return sum / values.length;
+// Helper function to calculate the average value and time of a dataset
+export const calculateAverage = (dataset) => {
+  if (dataset.length === 0) {
+    return { value: 0, time: 0 };
+  }
+
+  const totalValue = dataset.reduce((total, item) => total + item[1], 0);
+  const totalTime = dataset.reduce((total, item) => total + item[0], 0);
+
+  return {
+    value: totalValue / dataset.length,
+    time: totalTime / dataset.length,
+  };
 };
 
-export function calculateMedian(data) {
-  const sortedData = [...data].sort((a, b) => a[1] - b[1]);
-  const middle = Math.floor(sortedData.length / 2);
-
-  if (sortedData.length === 0) {
-    return { value: null, time: null };
+// Helper function to calculate the median value and time of a dataset
+export const calculateMedian = (dataset) => {
+  if (dataset.length === 0) {
+    return { value: 0, time: 0 };
   }
 
-  if (sortedData.length % 2 === 0) {
-    if (middle > 0) {
-      const medianValue =
-        (sortedData[middle - 1][1] + sortedData[middle][1]) / 2;
-      let medianTime = null;
+  const values = dataset.map((item) => item[1]);
+  const times = dataset.map((item) => item[0]);
 
-      // Loop through the sorted data to find the data point with the median value
-      for (let i = 0; i < sortedData.length; i++) {
-        if (sortedData[i][1] === medianValue) {
-          medianTime = sortedData[i][0];
-          break; // Found the data point, exit the loop
-        }
-      }
+  values.sort((a, b) => a - b);
+  times.sort((a, b) => a - b);
 
-      return { value: medianValue, time: medianTime };
-    } else {
-      // Handle the case where there is not enough data for a median
-      return { value: null, time: null };
-    }
-  } else {
-    const medianValue = sortedData[middle][1];
-    const medianTime = sortedData[middle][0];
-    return { value: medianValue, time: medianTime };
+  const middleValue = values[Math.floor(values.length / 2)];
+  const middleTime = times[Math.floor(times.length / 2)];
+
+  return { value: middleValue, time: middleTime };
+};
+
+// Helper function to calculate the total average (both value and time) across all categories
+export const calculateTotalAverage = (data) => {
+  const allData = data.category1.concat(data.category2, data.category3);
+
+  if (allData.length === 0) {
+    return { value: 0, time: 0 };
   }
-}
 
-export function calculateMedianTime(data, medianValue) {
-  const matchingData = data.find((item) => item[1] === medianValue);
-  return matchingData ? matchingData[0] : null;
-}
+  const totalValue = allData.reduce((total, item) => total + item[1], 0);
+  const totalTime = allData.reduce((total, item) => total + item[0], 0);
 
-export function calculateAverageTime(data, averageValue) {
-  const times = data.map((item) => item[0]);
-  const averageTime = times.reduce((acc, time, index) => {
-    return acc + (time - acc) / (index + 1);
-  }, 0);
-  return averageTime;
-}
+  return {
+    value: totalValue / allData.length,
+    time: totalTime / allData.length,
+  };
+};

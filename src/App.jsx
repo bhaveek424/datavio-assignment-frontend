@@ -12,12 +12,10 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import faker from 'faker';
 import {
   calculateAverage,
-  calculateAverageTime,
   calculateMedian,
-  calculateMedianTime,
+  calculateTotalAverage,
 } from './utils';
 
 ChartJS.register(
@@ -32,37 +30,6 @@ ChartJS.register(
 
 const { Option } = Select;
 
-export const fakerOptions = {
-  scales: {
-    y: {
-      beginAtZero: true,
-    },
-  },
-};
-
-export const fakerData = {
-  datasets: [
-    {
-      label: 'Red dataset',
-      data: Array.from({ length: 50 }, () => ({
-        x: faker.datatype.number({ min: -100, max: 100 }),
-        y: faker.datatype.number({ min: -100, max: 100 }),
-        r: faker.datatype.number({ min: 5, max: 20 }),
-      })),
-      backgroundColor: 'rgba(255, 99, 132, 0.5)',
-    },
-    {
-      label: 'Blue dataset',
-      data: Array.from({ length: 50 }, () => ({
-        x: faker.datatype.number({ min: -100, max: 100 }),
-        y: faker.datatype.number({ min: -100, max: 100 }),
-        r: faker.datatype.number({ min: 5, max: 20 }),
-      })),
-      backgroundColor: 'rgba(53, 162, 235, 0.5)',
-    },
-  ],
-};
-
 const App = () => {
   const [data, setData] = useState({
     category1: [],
@@ -71,8 +38,10 @@ const App = () => {
   });
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
   const [loading, setLoading] = useState(true);
-  const [bubbleData, setBubbleData] = useState([]);
+  const [chartData, setChartData] = useState(null);
+  const [bubbleData, setBubbleData] = useState(null);
 
+  // Data fetching
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -103,75 +72,167 @@ const App = () => {
     fetchData();
   }, []);
 
+  // Line Chart
   useEffect(() => {
     let chartDataForSelectedCategory = [];
 
     if (selectedCategory === 'All Categories') {
-      chartDataForSelectedCategory = data.category1.concat(
-        data.category2,
-        data.category3,
-      );
+      // Create datasets for all three categories
+      const datasets = [
+        {
+          label: 'Category 1',
+          data: data.category1.map((item) => item[1]),
+          borderColor: 'rgb(255, 99, 132)',
+          backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        },
+        {
+          label: 'Category 2',
+          data: data.category2.map((item) => item[1]),
+          borderColor: 'rgb(53, 162, 235)',
+          backgroundColor: 'rgba(53, 162, 235, 0.5)',
+        },
+        {
+          label: 'Category 3',
+          data: data.category3.map((item) => item[1]),
+          borderColor: 'rgb(75, 192, 192)',
+          backgroundColor: 'rgba(75, 192, 192, 0.5)',
+        },
+      ];
+
+      const labels = data.category1.map((item) => item[0]);
+
+      chartDataForSelectedCategory = { labels, datasets };
     } else if (data[selectedCategory]) {
-      chartDataForSelectedCategory = data[selectedCategory];
+      const dataset = {
+        label: selectedCategory,
+        data: data[selectedCategory].map((item) => item[1]),
+        borderColor: 'rgb(255, 99, 132)',
+        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+      };
+
+      const labels = data[selectedCategory].map((item) => item[0]);
+
+      chartDataForSelectedCategory = { labels, datasets: [dataset] };
     } else {
-      chartDataForSelectedCategory = [];
+      chartDataForSelectedCategory = null;
     }
 
-    if (chartDataForSelectedCategory.length > 0) {
-      //
-    }
+    setChartData(chartDataForSelectedCategory);
   }, [selectedCategory, data]);
 
+  // bubble chart
   useEffect(() => {
-    let updatedBubbleData = [];
+    let chartDataForSelectedCategory = [];
+
+    const averageCat1 = calculateAverage(data.category1);
+    const medianCat1 = calculateMedian(data.category1);
+    const averageCat2 = calculateAverage(data.category2);
+    const medianCat2 = calculateMedian(data.category2);
+    const averageCat3 = calculateAverage(data.category3);
+    const medianCat3 = calculateMedian(data.category3);
+    const totalAverage = calculateTotalAverage(data);
 
     if (selectedCategory === 'All Categories') {
-      const category1Average = calculateAverage(data.category1);
-      const category1Median = calculateMedian(data.category1);
-
-      const category2Average = calculateAverage(data.category2);
-      const category2Median = calculateMedian(data.category2);
-
-      const category3Average = calculateAverage(data.category3);
-      const category3Median = calculateMedian(data.category3);
-
-      const overallAverage =
-        (category1Average + category2Average + category3Average) / 3;
-      const overallTimeAverage =
-        (calculateAverageTime(data.category1) +
-          calculateAverageTime(data.category2) +
-          calculateAverageTime(data.category3)) /
-        3;
-
-      updatedBubbleData = [
-        { x: category1Average, y: calculateAverageTime(data.category1), r: 10 },
-        { x: category1Median.value, y: category1Median.time, r: 10 },
-        { x: category2Average, y: calculateAverageTime(data.category2), r: 10 },
-        { x: category2Median.value, y: category2Median.time, r: 10 },
-        { x: category3Average, y: calculateAverageTime(data.category3), r: 10 },
-        { x: category3Median.value, y: category3Median.time, r: 10 },
-        { x: overallAverage, y: overallTimeAverage, r: 10 },
+      // Create datasets for all three categories
+      const datasets = [
+        {
+          label: 'Cat 1(A)',
+          data: Array.from({ length: 1 }, () => ({
+            x: averageCat1.time,
+            y: averageCat1.value,
+            r: 10,
+          })),
+          backgroundColor: 'rgba(32, 121, 137, 0.5)',
+        },
+        {
+          label: 'Cat 1(M)',
+          data: Array.from({ length: 1 }, () => ({
+            x: medianCat1.time,
+            y: medianCat1.value,
+            r: 10,
+          })),
+          backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        },
+        {
+          label: 'Cat 2(A)',
+          data: Array.from({ length: 1 }, () => ({
+            x: averageCat2.time,
+            y: averageCat2.value,
+            r: 10,
+          })),
+          backgroundColor: 'rgba(86, 46, 55, 0.5)',
+        },
+        {
+          label: 'Cat 2(M)',
+          data: Array.from({ length: 1 }, () => ({
+            x: medianCat2.time,
+            y: medianCat2.value,
+            r: 10,
+          })),
+          backgroundColor: 'rgba(35, 62, 94, 0.5)',
+        },
+        {
+          label: 'Cat 3(A)',
+          data: Array.from({ length: 1 }, () => ({
+            x: averageCat3.time,
+            y: averageCat3.value,
+            r: 10,
+          })),
+          backgroundColor: 'rgba(55, 48, 50, 0.5)',
+        },
+        {
+          label: 'Cat 3(M)',
+          data: Array.from({ length: 1 }, () => ({
+            x: medianCat3.time,
+            y: medianCat3.value,
+            r: 10,
+          })),
+          backgroundColor: 'rgba(124, 40, 176, 0.5)',
+        },
+        {
+          label: 'Total(A)',
+          data: Array.from({ length: 1 }, () => ({
+            x: totalAverage.time,
+            y: totalAverage.value,
+            r: 10,
+          })),
+          backgroundColor: 'rgba(119, 212, 127, 0.5)',
+        },
       ];
+
+      const labels = data.category1.map((item) => item[0]);
+
+      chartDataForSelectedCategory = { labels, datasets };
     } else if (data[selectedCategory]) {
       const selectedCategoryData = data[selectedCategory];
       const selectedCategoryAverage = calculateAverage(selectedCategoryData);
       const selectedCategoryMedian = calculateMedian(selectedCategoryData);
-
-      updatedBubbleData = [
+      const datasets = [
         {
-          x: selectedCategoryAverage,
-          y: calculateAverageTime(selectedCategoryData),
-          r: 10,
+          label: `${selectedCategory}(A)`,
+          data: Array.from({ length: 1 }, () => ({
+            x: selectedCategoryAverage.time,
+            y: selectedCategoryAverage.value,
+            r: 10,
+          })),
+          backgroundColor: 'rgba(255, 99, 132, 0.5)',
         },
         {
-          x: selectedCategoryMedian.value,
-          y: selectedCategoryMedian.time,
-          r: 10,
+          label: `${selectedCategory}(M)`,
+          data: Array.from({ length: 1 }, () => ({
+            x: selectedCategoryMedian.time,
+            y: selectedCategoryMedian.value,
+            r: 10,
+          })),
+          backgroundColor: 'rgba(255, 99, 132, 0.5)',
         },
       ];
+
+      const labels = data[selectedCategory].map((item) => item[0]);
+      chartDataForSelectedCategory = { labels, datasets };
     }
 
-    setBubbleData(updatedBubbleData);
+    setBubbleData(chartDataForSelectedCategory);
   }, [selectedCategory, data]);
 
   return (
@@ -216,62 +277,41 @@ const App = () => {
         {/* Conditional rendering: Render the Line chart if data is available */}
         {!loading && (
           <div style={{ flex: 1, width: '40vw' }}>
-            <Line
-              data={{
-                labels:
-                  selectedCategory === 'All Categories'
-                    ? data.category1.map((item) => item[0])
-                    : data[selectedCategory].map((item) => item[0]), // Use timestamps as labels
-                datasets:
-                  selectedCategory === 'All Categories'
-                    ? [
-                        {
-                          label: 'Category 1',
-                          data: data.category1.map((item) => item[1]),
-                          borderColor: 'rgb(255, 99, 132)',
-                          backgroundColor: 'rgba(255, 99, 132, 0.5)',
-                        },
-                        {
-                          label: 'Category 2',
-                          data: data.category2.map((item) => item[1]),
-                          borderColor: 'rgb(53, 162, 235)',
-                          backgroundColor: 'rgba(53, 162, 235, 0.5)',
-                        },
-                        {
-                          label: 'Category 3',
-                          data: data.category3.map((item) => item[1]),
-                          borderColor: 'rgb(75, 192, 192)',
-                          backgroundColor: 'rgba(75, 192, 192, 0.5)',
-                        },
-                      ]
-                    : [
-                        {
-                          label: selectedCategory,
-                          data: data[selectedCategory].map((item) => item[1]),
-                          borderColor: 'rgb(255, 99, 132)',
-                          backgroundColor: 'rgba(255, 99, 132, 0.5)',
-                        },
-                      ],
-              }}
-              options={{
-                responsive: true,
-                plugins: {
-                  legend: {
-                    position: 'top',
+            {chartData ? (
+              <Line
+                data={chartData}
+                options={{
+                  responsive: true,
+                  plugins: {
+                    legend: {
+                      position: 'top',
+                    },
                   },
-                },
-              }}
-            />
+                }}
+              />
+            ) : (
+              <p>No data available for the selected category.</p>
+            )}
           </div>
         )}
         {loading && <p>Loading data...</p>}
         {!loading && !data && <p>No data available.</p>}
-        <div style={{ width: '40vw', flex: 1 }}>
-          <Bubble
-            options={fakerOptions}
-            data={{ datasets: [{ data: bubbleData }] }}
-          />
-        </div>
+        {bubbleData ? (
+          <div style={{ width: '40vw', flex: 1 }}>
+            <Bubble
+              options={{
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                  },
+                },
+              }}
+              data={bubbleData}
+            />
+          </div>
+        ) : (
+          <p>No data available for the selected category.</p>
+        )}
       </div>
     </div>
   );
