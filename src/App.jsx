@@ -266,16 +266,17 @@ const App = () => {
           <Option value="category3">Category 3</Option>
         </Select>
       </div>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '20px',
-          width: '100vw',
-        }}>
-        {/* Conditional rendering: Render the Line chart if data is available */}
-        {!loading && (
+
+      {/* Conditional rendering: Render the Line chart if data is available */}
+      {!loading && (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '20px',
+            width: '100vw',
+          }}>
           <div style={{ flex: 1, width: '40vw' }}>
             {chartData ? (
               <Line
@@ -293,26 +294,26 @@ const App = () => {
               <p>No data available for the selected category.</p>
             )}
           </div>
-        )}
-        {loading && <p>Loading data...</p>}
-        {!loading && !data && <p>No data available.</p>}
-        {bubbleData ? (
           <div style={{ width: '40vw', flex: 1, paddingRight: '20px' }}>
-            <Bubble
-              options={{
-                scales: {
-                  y: {
-                    beginAtZero: true,
+            {bubbleData ? (
+              <Bubble
+                options={{
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                    },
                   },
-                },
-              }}
-              data={bubbleData}
-            />
+                }}
+                data={bubbleData}
+              />
+            ) : (
+              <p>No data available for the selected category.</p>
+            )}
           </div>
-        ) : (
-          <p>No data available for the selected category.</p>
-        )}
-      </div>
+        </div>
+      )}
+      {loading && <p>Loading data...</p>}
+      {!loading && !data && <p>No data available.</p>}
     </div>
   );
 };
